@@ -87,7 +87,7 @@ module.exports = {
       // 控制webpack如何通知超出特定文件限制的资产和入口点
       hints: false // 关闭提示
     },
-    externals: process.env.NODE_ENV === 'production' ? getExternals() : {},
+    // externals: process.env.NODE_ENV === 'production' ? getExternals() : {},
     optimization: {
       minimizer: [
         // ============代码压缩 start============

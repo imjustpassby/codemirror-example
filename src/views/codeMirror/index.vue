@@ -26,21 +26,22 @@
 
 <script>
 import { codemirror } from 'vue-codemirror'
-// 引入主题后还需要在 options 中指定主题才会生效
-import 'codemirror/theme/panda-syntax.css'
 // 语法高亮
 import 'codemirror/mode/sql/sql.js'
 // 代码提示,补全
 import 'codemirror/addon/hint/show-hint.css'
 import 'codemirror/addon/hint/show-hint'
 import 'codemirror/addon/hint/sql-hint.js'
+
 import { postSql } from '@/api/codeMirror'
+
 const defaultCode = '-- 左ctrl键开启代码提示补全功能\nSELECT * FROM tableA;\n'
 const panes = [
   { title: 'Tab 1', content: defaultCode, key: 'tab 1' },
   { title: 'Tab 2', content: defaultCode, key: 'tab 2' },
   { title: 'Tab 3', content: defaultCode, key: 'tab 3' }
 ]
+
 export default {
   name: 'CodeMirror',
   props: [''],
