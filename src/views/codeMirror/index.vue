@@ -11,15 +11,16 @@
       :tab="pane.title"
       :closable="pane.closable"
     >
-      <a-button
-        class="submit"
-        type="primary"
-        shape="circle"
-        icon="cloud-upload"
-        @click="submitCode"
-      ></a-button>
       <code-mirror v-model="pane.content" :options="cmOptions" />
     </a-tab-pane>
+    <a-button
+      class="submit"
+      type="primary"
+      shape="circle"
+      icon="cloud-upload"
+      @click="submitCode"
+      slot="tabBarExtraContent"
+    ></a-button>
   </a-tabs>
 </template>
 
@@ -36,9 +37,9 @@ import 'codemirror/addon/hint/sql-hint.js'
 import { postSql } from '@/api/codeMirror'
 const defaultCode = '-- 左ctrl键开启代码提示补全功能\nSELECT * FROM tableA;\n'
 const panes = [
-  { title: 'Tab 1', content: defaultCode, key: '1' },
-  { title: 'Tab 2', content: defaultCode, key: '2' },
-  { title: 'Tab 3', content: defaultCode, key: '3' }
+  { title: 'Tab 1', content: defaultCode, key: 'tab 1' },
+  { title: 'Tab 2', content: defaultCode, key: 'tab 2' },
+  { title: 'Tab 3', content: defaultCode, key: 'tab 3' }
 ]
 export default {
   name: 'CodeMirror',
@@ -59,7 +60,7 @@ export default {
       },
       activeKey: panes[0].key,
       panes,
-      newTabIndex: 0
+      newTabIndex: 1
     }
   },
 
@@ -84,10 +85,10 @@ export default {
     },
     add() {
       const panes = this.panes
-      const activeKey = `newTab${this.newTabIndex++}`
+      const activeKey = `newTab ${this.newTabIndex}`
       panes.push({
-        title: 'New Tab',
-        content: '-- 左ctrl键开启代码提示补全功能\nSELECT * FROM tableA\n',
+        title: `New Tab ${this.newTabIndex++}`,
+        content: defaultCode,
         key: activeKey
       })
       this.panes = panes
