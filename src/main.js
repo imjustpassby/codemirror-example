@@ -9,6 +9,7 @@ import '@/utils/antd-components.js'
 
 import './router/permission'
 import '@/assets/style/index.less'
+
 import '@/utils/antd-components.js'
 Vue.config.productionTip = false
 

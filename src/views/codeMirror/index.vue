@@ -1,41 +1,110 @@
 <template>
-  <a-tabs
-    v-model="activeKey"
-    type="editable-card"
-    @edit="onEdit"
-    @change="changeTab"
-  >
-    <a-tab-pane
-      v-for="pane in panes"
-      :key="pane.key"
-      :tab="pane.title"
-      :closable="pane.closable"
+  <div>
+    <a-tabs
+      v-model="activeKey"
+      type="editable-card"
+      @edit="onEdit"
+      @change="changeTab"
     >
-      <code-mirror v-model="pane.content" :options="cmOptions" />
-    </a-tab-pane>
-    <a-button
-      class="submit"
-      type="primary"
-      shape="circle"
-      icon="cloud-upload"
-      @click="submitCode"
-      slot="tabBarExtraContent"
-    ></a-button>
-  </a-tabs>
+      <a-tab-pane
+        v-for="pane in panes"
+        :key="pane.key"
+        :tab="pane.title"
+        :closable="pane.closable"
+      >
+        <code-mirror
+          :ref="'codeEditor' + pane.key"
+          v-model="pane.content"
+          :options="cmOptions"
+        />
+      </a-tab-pane>
+      <a-tooltip
+        class="submit"
+        placement="top"
+        title="提交代码"
+        slot="tabBarExtraContent"
+      >
+        <a-button
+          type="primary"
+          shape="circle"
+          icon="cloud-upload"
+          @click="submitCode"
+        ></a-button>
+      </a-tooltip>
+      <a-tooltip
+        class="snippets"
+        placement="top"
+        title="格式化代码"
+        slot="tabBarExtraContent"
+      >
+        <a-button
+          type="primary"
+          shape="circle"
+          icon="snippets"
+          @click="formatCode"
+        ></a-button>
+      </a-tooltip>
+      <a-tooltip
+        class="rename"
+        placement="top"
+        title="重命名文件"
+        slot="tabBarExtraContent"
+      >
+        <a-button
+          type="primary"
+          shape="circle"
+          icon="edit"
+          @click="setModalVisible(true)"
+        ></a-button>
+      </a-tooltip>
+    </a-tabs>
+
+    <a-modal
+      title="重命名文件"
+      :dialog-style="{ top: '20px' }"
+      :visible="modalVisible"
+      @ok="renameCode"
+      @cancel="() => setModalVisible(false)"
+    >
+      <a-input v-model="renameText" />
+    </a-modal>
+  </div>
 </template>
 
 <script>
 import { codemirror } from 'vue-codemirror'
+
+// require codemirror styles
+import 'codemirror/lib/codemirror.css'
+import 'codemirror/theme/panda-syntax.css'
+import 'codemirror/addon/selection/active-line'
 // 语法高亮
 import 'codemirror/mode/sql/sql.js'
 // 代码提示,补全
 import 'codemirror/addon/hint/show-hint.css'
 import 'codemirror/addon/hint/show-hint'
 import 'codemirror/addon/hint/sql-hint.js'
+//sublime编辑器效果
+import 'codemirror/keymap/sublime'
+import 'codemirror/addon/display/autorefresh'
+// 关键字搜索
+import 'codemirror/addon/scroll/annotatescrollbar.js'
+import 'codemirror/addon/search/matchesonscrollbar.js'
+import 'codemirror/addon/search/match-highlighter.js'
+import 'codemirror/addon/search/jump-to-line.js'
+
+import 'codemirror/addon/dialog/dialog.js'
+import 'codemirror/addon/dialog/dialog.css'
+import 'codemirror/addon/search/searchcursor.js'
+import 'codemirror/addon/search/search.js'
+
+// sql代码格式化
+import sqlFormatter from 'sql-formatter'
 
 import { postSql } from '@/api/codeMirror'
 
-const defaultCode = '-- 左ctrl键开启代码提示补全功能\nSELECT * FROM tableA;\n'
+const defaultCode =
+  '-- “左ctrl键” 开启代码提示补全功能\nSELECT * FROM tableA;\n'
 const panes = [
   { title: 'Tab 1', content: defaultCode, key: 'tab 1' },
   { title: 'Tab 2', content: defaultCode, key: 'tab 2' },
@@ -57,11 +126,18 @@ export default {
         // 显示行号
         lineNumbers: true,
         line: true,
-        extraKeys: { Ctrl: 'autocomplete' }
+        extraKeys: { Ctrl: 'autocomplete' },
+        styleActiveLine: true,
+        highlightDifferences: true,
+        keyMap: 'sublime',
+        lint: true,
+        autoRefresh: true
       },
       activeKey: panes[0].key,
       panes,
-      newTabIndex: 1
+      newTabIndex: 1,
+      modalVisible: false,
+      renameText: ''
     }
   },
 
@@ -69,7 +145,11 @@ export default {
     codeMirror: codemirror
   },
 
-  computed: {},
+  computed: {
+    codeEditor() {
+      return this.$refs[`codeEditor${this.activeKey}`][0].codemirror
+    }
+  },
 
   watch: {},
 
@@ -119,17 +199,49 @@ export default {
       for (const code of panes) {
         if (code.key == this.activeKey) {
           currentCode = code
-          // TODO: api
-          console.log(currentCode.content)
           await postSql({ sql: currentCode.content })
           return
         }
       }
+    },
+    formatCode() {
+      let currentCode = null
+      for (const code of panes) {
+        if (code.key == this.activeKey) {
+          currentCode = code
+          this.$nextTick(() => {
+            this.codeEditor.setValue(sqlFormatter.format(currentCode.content))
+          })
+          return
+        }
+      }
+    },
+    renameCode() {
+      let currentCode = null
+      for (const code of panes) {
+        if (code.key == this.activeKey) {
+          currentCode = code
+          if (this.renameText.trim().length) {
+            currentCode.title = this.renameText.trim()
+            this.setModalVisible(false)
+            return
+          }
+          this.$message.warning('文件名不能为空！')
+        }
+      }
+    },
+    setModalVisible(modalVisible) {
+      this.modalVisible = modalVisible
+      this.renameText = ''
     }
   }
 }
 </script>
 <style lang="less">
+.CodeMirror {
+  min-height: 100vh;
+  padding-bottom: 10px;
+}
 .ant-tabs-nav-container {
   background-color: #292a2b;
   color: #fff;
@@ -168,8 +280,47 @@ export default {
 
 .submit {
   position: fixed;
-  right: 4px;
-  top: 30px;
+  right: 30px;
+  top: 40px;
   z-index: 9999;
+}
+
+.snippets {
+  position: fixed;
+  right: 65px;
+  top: 40px;
+  z-index: 9999;
+}
+
+.rename {
+  position: fixed;
+  right: 100px;
+  top: 40px;
+  z-index: 9999;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+::-webkit-scrollbar {
+  /*滚动条整体样式*/
+  width: 10px;
+  /*高宽分别对应横竖滚动条的尺寸*/
+  height: 0px;
+}
+
+::-webkit-scrollbar-thumb {
+  /*滚动条里面小方块*/
+  border-radius: 10px;
+  background: #ffb86c; /* fallback for old browsers */
+  background: #ffb86c; /* Chrome 10-25, Safari 5.1-6 */
+  background: #ffb86c; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+}
+
+::-webkit-scrollbar-track {
+  /*滚动条里面轨道*/
+  border-radius: 10px;
+  background: #292a2b;
 }
 </style>
