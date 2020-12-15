@@ -116,7 +116,7 @@ export default {
       cmOptions: {
         mode: 'text/x-mysql',
         // 缩进格式
-        tabSize: 4,
+        tabSize: 2,
         // 主题，对应主题库 JS 需要提前引入
         theme: 'panda-syntax',
         // 显示行号
