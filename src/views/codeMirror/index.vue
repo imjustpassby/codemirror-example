@@ -105,20 +105,16 @@ import { postSql } from '@/api/codeMirror'
 
 const defaultCode =
   '-- “左ctrl键” 开启代码提示补全功能\nSELECT * FROM tableA;\n'
-const panes = [
-  { title: 'Tab 1', content: defaultCode, key: 'tab 1' },
-  { title: 'Tab 2', content: defaultCode, key: 'tab 2' },
-  { title: 'Tab 3', content: defaultCode, key: 'tab 3' }
-]
+const panes = [{ title: 'Tab 1', content: defaultCode, key: 'tab 1' }]
 
 export default {
   name: 'CodeMirror',
   props: [''],
   data() {
     return {
-      mode: { name: 'MySQL', mime: 'text/x-mysql', mode: 'sql' },
       // 默认配置
       cmOptions: {
+        mode: 'text/x-mysql',
         // 缩进格式
         tabSize: 4,
         // 主题，对应主题库 JS 需要提前引入
@@ -281,46 +277,42 @@ export default {
 .submit {
   position: fixed;
   right: 30px;
-  top: 40px;
+  top: 90%;
   z-index: 9999;
 }
 
 .snippets {
   position: fixed;
   right: 65px;
-  top: 40px;
+  top: 90%;
   z-index: 9999;
 }
 
 .rename {
   position: fixed;
   right: 100px;
-  top: 40px;
+  top: 90%;
   z-index: 9999;
 }
 
-body::-webkit-scrollbar {
-  display: none;
+body::-webkit-scrollbar-thumb {
+  background: #c97e2e;
 }
 
 ::-webkit-scrollbar {
   /*滚动条整体样式*/
   width: 10px;
-  /*高宽分别对应横竖滚动条的尺寸*/
-  height: 0px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
   /*滚动条里面小方块*/
   border-radius: 10px;
-  background: #ffb86c; /* fallback for old browsers */
-  background: #ffb86c; /* Chrome 10-25, Safari 5.1-6 */
-  background: #ffb86c; /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: #ffb86c;
 }
 
 ::-webkit-scrollbar-track {
   /*滚动条里面轨道*/
-  border-radius: 10px;
   background: #292a2b;
 }
 </style>
