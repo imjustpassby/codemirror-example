@@ -47,7 +47,7 @@ module.exports = {
   lintOnSave: false,
 
   // 部署应用包时的基本 URL 为相对路径
-  publicPath: './',
+  publicPath: process.env.NODE_ENV === 'production' ? '/codemirror' : './',
 
   // 生产环境下的 source map
   productionSourceMap: false,
