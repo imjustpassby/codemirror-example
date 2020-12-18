@@ -1,13 +1,12 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import codeMirror from '@/views/codeMirror'
 Vue.use(VueRouter)
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: codeMirror
+    component: () => import('@/views/codeMirror')
   }
 ]
 
