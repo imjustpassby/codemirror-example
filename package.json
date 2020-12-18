@@ -17,6 +17,7 @@
   "dependencies": {
     "ant-design-vue": "1.7.2",
     "axios": "^0.21.0",
+    "cm-searchbox": "^1.0.8",
     "core-js": "^3.6.5",
     "nprogress": "^0.2.0",
     "sql-formatter": "^2.3.3",

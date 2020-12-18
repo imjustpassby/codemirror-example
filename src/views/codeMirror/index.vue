@@ -88,6 +88,7 @@ import 'codemirror/addon/hint/sql-hint.js'
 import 'codemirror/keymap/sublime'
 import 'codemirror/addon/display/autorefresh'
 // 关键字搜索
+import 'cm-searchbox/lib/searchbox.js'
 import 'codemirror/addon/scroll/annotatescrollbar.js'
 import 'codemirror/addon/search/matchesonscrollbar.js'
 import 'codemirror/addon/search/match-highlighter.js'
@@ -100,11 +101,10 @@ import 'codemirror/addon/search/search.js'
 
 // sql代码格式化
 import sqlFormatter from 'sql-formatter'
-
+import { debounce } from '@/utils/common'
 import { postSql } from '@/api/codeMirror'
 
-const defaultCode =
-  '-- “左ctrl键” 开启代码提示补全功能\nSELECT * FROM tableA;\n'
+const defaultCode = 'SELECT * FROM tableA;\n'
 const panes = [{ title: 'Tab 1', content: defaultCode, key: 'tab 1' }]
 
 export default {
@@ -115,19 +115,23 @@ export default {
       // 默认配置
       cmOptions: {
         mode: 'text/x-mysql',
-        // 缩进格式
-        tabSize: 4,
-        // 主题，对应主题库 JS 需要提前引入
+        tabSize: 2,
         theme: 'panda-syntax',
-        // 显示行号
         lineNumbers: true,
         line: true,
-        extraKeys: { Ctrl: 'autocomplete' },
+        matchBrackets: true,
         styleActiveLine: true,
-        highlightDifferences: true,
         keyMap: 'sublime',
         lint: true,
-        autoRefresh: true
+        autoRefresh: true,
+        searchbox: true,
+        hintOptions: {
+          completeSingle: false,
+          tables: {
+            users: ['name', 'score', 'birthDate'],
+            countries: ['name', 'population', 'size']
+          }
+        }
       },
       activeKey: panes[0].key,
       panes,
@@ -151,7 +155,14 @@ export default {
 
   beforeMount() {},
 
-  mounted() {},
+  mounted() {
+    //显示提示
+    this.codeEditor.on('inputRead', (instance, changeObj) => {
+      if (/^[a-zA-Z.]/.test(changeObj.text[0])) {
+        this.codeEditor.showHint()
+      }
+    })
+  },
 
   methods: {
     changeTab(key) {
@@ -229,14 +240,16 @@ export default {
     setModalVisible(modalVisible) {
       this.modalVisible = modalVisible
       this.renameText = ''
+    },
+    changeTheme(theme) {
+      this.codeEditor.setOption('theme', 'idea')
     }
   }
 }
 </script>
 <style lang="less">
 .CodeMirror {
-  min-height: 100vh;
-  padding-bottom: 10px;
+  min-height: calc(100vh - 40px);
 }
 .ant-tabs-nav-container {
   background-color: #292a2b;
